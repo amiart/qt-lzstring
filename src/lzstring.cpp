@@ -5,6 +5,7 @@
 #include <QList>
 #include <QString>
 #include <QStringBuilder>
+#include <QStringRef>
 
 static QChar compressGetCharFromInt(int a)
 {
@@ -35,31 +36,31 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar,
 {
     int i = 0;
     int value = 0;
-    QHash<QString, int> context_dictionary;
-    QHash<QString, bool> context_dictionaryToCreate;
-    QString context_c;
-    QString context_wc;
-    QString context_w;
+    QHash<QStringRef, int> context_dictionary;
+    QHash<QStringRef, bool> context_dictionaryToCreate;
+    QStringRef context_c;
+    QStringRef context_wc;
+    QStringRef context_w;
     int context_enlargeIn = 2; // Compensate for the first entry which should not count
     int context_dictSize = 3;
     int context_numBits = 2;
     QString context_data;
     int context_data_val = 0;
     int context_data_position = 0;
-    int ii = 0;
 
-    context_data.reserve(uncompressed.length() / 3);
+    context_data.reserve( qMax(255, uncompressed.length()/5) );
+    context_w = QStringRef(&uncompressed, 0, 0);
 
-    for (ii=0; ii<uncompressed.length(); ++ii)
+    for (int ii=0, size=uncompressed.length(); ii<size; ++ii)
     {
-        context_c = uncompressed.at(ii);
+        context_c = QStringRef(&uncompressed, ii, 1);
         if (!context_dictionary.contains(context_c))
         {
             context_dictionary.insert(context_c, context_dictSize++);
             context_dictionaryToCreate.insert(context_c, true);
         }
 
-        context_wc = context_w % context_c;  // % - QStringBuilder
+        context_wc = QStringRef(&uncompressed, context_w.position(), context_w.length()+1);
         if (context_dictionary.contains(context_wc))
         {
             context_w = context_wc;
@@ -284,7 +285,6 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar,
             context_numBits++;
         }
     }
-
 
     // Mark the end of the stream
     value = 2;
