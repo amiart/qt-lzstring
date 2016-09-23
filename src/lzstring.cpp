@@ -326,30 +326,30 @@ class DecompressGetNextValue
 {
 public:
     DecompressGetNextValue(const QString &compressed) :
-        m_compressed(compressed) {}
+        m_compressed(compressed.constData()) {}
 
     int operator()(int index) const
     {
-        return m_compressed.at(index).unicode();
+        return m_compressed[index].unicode();
     }
 
 private:
-    const QString &m_compressed;
+    const QChar *m_compressed;
 };
 
 class DecompressFromUTF16GetNextValue
 {
 public:
     DecompressFromUTF16GetNextValue(const QString &compressed) :
-        m_compressed(compressed) {}
+        m_compressed(compressed.constData()) {}
 
     int operator()(int index) const
     {
-        return m_compressed.at(index).unicode() - 32;
+        return m_compressed[index].unicode() - 32;
     }
 
 private:
-    const QString &m_compressed;
+    const QChar *m_compressed;
 };
 
 QString LZString::decompress(const QString &compressed)
@@ -379,7 +379,7 @@ template <typename GetNextValue>
 QString LZString::_decompress(int length, int resetValue,
                               GetNextValue getNextValue)
 {
-    QHash<int, QString> dictionary;
+    QList<QString> dictionary;
     int next = 0;
     int enlargeIn = 4;
     int dictSize = 4;
@@ -394,7 +394,7 @@ QString LZString::_decompress(int length, int resetValue,
     data.position = resetValue;
     data.index = 1;
 
-    result.reserve(length*3);
+    result.reserve(length*5);
 
     // Put anything at dictionary indexes 0-2 - this will never be read.
     // See question:
@@ -403,7 +403,7 @@ QString LZString::_decompress(int length, int resetValue,
     // http://pieroxy.net/blog/replyToBlogEntry.action?entry=1368091620000&comment=1474435834165
     for (int i=0; i<3; ++i)
     {
-        dictionary.insert(i, QString::number(i));
+        dictionary.append(QString::number(i));
     }
 
     bits = 0;
@@ -466,7 +466,7 @@ QString LZString::_decompress(int length, int resetValue,
             return "";
     }
 
-    dictionary.insert(3, c);
+    dictionary.append(c);  // "c" may be empty string
     w = c;
     result.append(c);
     while (true)
@@ -490,8 +490,8 @@ QString LZString::_decompress(int length, int resetValue,
             power <<= 1;
         }
 
-        // TODO: very strange here, c above is as char/string,
-        // here further is a int, rename "c" in the switch as "cc".
+        // Very strange here, "c" above is as char/string, but
+        // further "c" is a int, rename "c" in the switch as "cc".
         int cc;
         switch (cc = bits)
         {
@@ -512,8 +512,8 @@ QString LZString::_decompress(int length, int resetValue,
                     power <<= 1;
                 }
 
-                dictionary.insert(dictSize++, QChar(bits));
-                cc = dictSize-1;
+                cc = dictSize++;
+                dictionary.append(QChar(bits));
                 enlargeIn--;
                 break;
 
@@ -534,8 +534,8 @@ QString LZString::_decompress(int length, int resetValue,
                     power <<= 1;
                 }
 
-                dictionary.insert(dictSize++, QChar(bits));
-                cc = dictSize-1;
+                cc = dictSize++;
+                dictionary.append(QChar(bits));
                 enlargeIn--;
                 break;
 
@@ -549,10 +549,10 @@ QString LZString::_decompress(int length, int resetValue,
             numBits++;
         }
 
-        QHash<int, QString>::const_iterator it = dictionary.find(cc);
-        if (it != dictionary.constEnd() && !it->isEmpty())
+        Q_ASSERT(dictSize == dictionary.size());
+        if (cc < dictSize && !dictionary.at(cc).isEmpty())
         {
-            entry = *it;
+            entry = dictionary.at(cc);
         }
         else
         {
@@ -564,7 +564,8 @@ QString LZString::_decompress(int length, int resetValue,
         result.append(entry);
 
         // Add w+entry[0] to the dictionary.
-        dictionary.insert(dictSize++, w % entry.at(0));  // % - QStringBuilder
+        dictSize++;
+        dictionary.append(w % entry.at(0));  // % - QStringBuilder
         enlargeIn--;
 
         w = entry;
