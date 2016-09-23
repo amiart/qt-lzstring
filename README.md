@@ -1,5 +1,5 @@
 
-<h3>Qt implementation of LZ-String, version 1.4.4.</h3>
+<h2>Qt implementation of LZ-String, version 1.4.4.</h2>
 <p>
 Based on the LZ-String compression algorithm found here:<br/>
 http://pieroxy.net/blog/pages/lz-string/index.html
