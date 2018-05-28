@@ -12,7 +12,7 @@ Implemented functions:<br/>
 <ul>
 <li>compress() / decompress() - <b>YES</b></li>
 <li>compressToUTF16() / decompressFromUTF16() - <b>YES</b></li>
-<li>compressToBase64() / decompressFromBase64() - <b>NO</b></li>
+<li>compressToBase64() / decompressFromBase64() - <b>YES</b></li>
 <li>compressToUint8Array() / decompressFromUint8Array() - <b>NO</b></li>
 <li>compressToEncodedURIComponent() / decompressFromEncodedURIComponent() - <b>NO</b></li>
 </ul>
