@@ -3,29 +3,28 @@
 #include <cmath>
 #include <QHash>
 #include <QList>
+#include <QMap>
 #include <QString>
 #include <QStringBuilder>
 #include <QStringRef>
-#include <QVariant>
 
-QString LZString::keyStrBase64 = QStringLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
-QString LZString::keyStrUriSafe = QStringLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$");
+static const QString keyStrBase64 = QStringLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
+static const QString keyStrUriSafe = QStringLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$");
 
 static QChar compressGetCharFromInt(int a)
 {
     return QChar(a);
 }
 
-static  QChar compressToUTF16GetCharFromInt(int a)
+static QChar compressToUTF16GetCharFromInt(int a)
 {
     return QChar(a+32);
 }
 
 static QChar compressToBase64GetCharFromInt(int a)
 {
-    return LZString::keyStrBase64[a];
+    return keyStrBase64.at(a);
 }
-
 
 QString LZString::compress(const QString &uncompressed)
 {
@@ -45,17 +44,17 @@ QString LZString::compressToBase64(const QString &uncompressed)
     if (uncompressed.isEmpty())
         return "";
 
-    QString res = _compress(uncompressed, 6, &compressToBase64GetCharFromInt);  // % - QStringBuilder
-    switch (res.length() % 4) { // To produce valid Base64
+    QString res = _compress(uncompressed, 6, &compressToBase64GetCharFromInt);
+    switch (res.length() % 4) // To produce valid Base64
+    {
         default: // When could this happen ?
-        case 0 : return res;
-        case 1 : return res.append("===");
-        case 2 : return res.append("==");
-        case 3 : return res.append("=");
+        case 0: return res;
+        case 1: return res.append(QLatin1String("==="));
+        case 2: return res.append(QLatin1String("=="));
+        case 3: return res.append(QLatin1String("="));
     }
     return res;
 }
-
 
 template <typename GetCharFromInt>
 QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCharFromInt getCharFromInt)
@@ -351,7 +350,9 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCha
 class DecompressGetNextValue
 {
 public:
-    DecompressGetNextValue(const QString &compressed) : m_compressed(compressed.constData()) {}
+    DecompressGetNextValue(const QString &compressed) :
+        m_compressed(compressed.constData()) {}
+
     int operator()(int index) const
     {
         return m_compressed[index].unicode();
@@ -379,23 +380,25 @@ private:
 class DecompressGetBaseValue
 {
 public:
-    DecompressGetBaseValue(const QString &alphabet, const QString &compressed) : m_compressed(compressed.constData()), alphabet(alphabet)
+    DecompressGetBaseValue(const QString &compressed, const QString &alphabet) :
+        m_compressed(compressed.constData()),
+        m_alphabet(alphabet)
     {
-        int i=0;
-        for(i=0; i<alphabet.length(); i++) {
-            baseReverseDic[alphabet[i]] = i;
+        for (int i=0, len=alphabet.length(); i<len; ++i)
+        {
+            m_baseReverseDic[alphabet.at(i)] = i;
         }
     }
 
     int operator()(int index) const
     {
-        return baseReverseDic[m_compressed[index].unicode()];
+        return m_baseReverseDic[m_compressed[index].unicode()];
     }
 
 private:
     const QChar *m_compressed;
-    QString alphabet;
-    QMap<QChar, int> baseReverseDic;
+    QString m_alphabet;
+    QMap<QChar, int> m_baseReverseDic;
 };
 
 QString LZString::decompress(const QString &compressed)
@@ -419,7 +422,7 @@ QString LZString::decompressFromBase64(const QString &compressed)
     if (compressed.isEmpty())
         return "";
 
-    return _decompress(compressed.length(), 32, DecompressGetBaseValue(LZString::keyStrBase64, compressed));
+    return _decompress(compressed.length(), 32, DecompressGetBaseValue(compressed, keyStrBase64));
 }
 
 struct DecompressData

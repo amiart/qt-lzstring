@@ -24,10 +24,7 @@ public:
     static QString decompressFromUTF16(const QString &compressed);
     static QString decompressFromBase64(const QString &compressed);
 
-    static QString keyStrBase64;
-    static QString keyStrUriSafe;
 private:
-
     template <typename GetCharFromInt>
     static QString _compress(const QString &uncompressed, int bitsPerChar, GetCharFromInt getCharFromInt);
 
