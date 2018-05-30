@@ -29,74 +29,132 @@ private slots:
         QVERIFY2(length > 0, "Empty data.json file");
     }
 
-    void testStrings()
-    {
-        for (int len=0; len<256; ++len)
-        {
-            QString text = createString(len);
-            QVERIFY( compressDecompressUTF16(text) == text );
-        }
-
-        QString text = createString(0xD7FF);  // 0xD800—0xDB7F - High Surrogates
-        QVERIFY( compressDecompressUTF16(text) == text );
-    }
-
-    void testLetters()
+    void test_data()
     {
         QString letters = "abcdefghijklmnoprstuwxyz ABCDEFGHIJKLMNOPRSTUWXYZ";
         QString polish  = "ąęćśńółźż ĄĘĆŚŃÓŁŹŻ";
-        QString numbers = "0123456789";
+        QString digits  = "0123456789";
         QString symbols = "!@#$%^&*()_-+={}`~/,.<>?:\"'|[]{}";
         QString escape  = "\r\n\t";
-        QString all     = letters + polish + numbers + symbols + escape;
+        QString all     = letters + polish + digits + symbols + escape;
         QString custom  = "hello1hello2hello3hello4hello5hello6hello7hello8hello9helloAhelloBhelloChelloDhelloEhelloF";
 
-        QVERIFY( compressDecompressUTF16(letters) == letters );
-        QVERIFY( compressDecompressUTF16(polish)  == polish  );
-        QVERIFY( compressDecompressUTF16(numbers) == numbers );
-        QVERIFY( compressDecompressUTF16(symbols) == symbols );
-        QVERIFY( compressDecompressUTF16(escape)  == escape  );
-        QVERIFY( compressDecompressUTF16(all)     == all     );
-        QVERIFY( compressDecompressUTF16(custom)  == custom  );
+        QTest::addColumn<QString>("text");
+        QTest::newRow("letters") << letters;
+        QTest::newRow("polish")  << polish;
+        QTest::newRow("digits")  << digits;
+        QTest::newRow("symbols") << symbols;
+        QTest::newRow("escape")  << escape;
+        QTest::newRow("all")     << all;
+        QTest::newRow("custom")  << custom;
 
-        QString longText = "";
-        for (int i=0; i<4096; ++i)
+        QTest::newRow("json") << m_json;
+
+        for (int len=0; len<256; ++len)
         {
-            longText += all;
+            QString testName = QString("text len=%1").arg(len);
+            QTest::newRow(qPrintable(testName)) << createString(len);
         }
 
-        QVERIFY( compressDecompressUTF16(longText) == longText );
-    }
-    void testJson()
-    {
-        QVERIFY( compressDecompressUTF16(m_json) == m_json );
+        int len = 0xD7FF;  // 0xD800—0xDB7F - High Surrogates
+        QString testName = QString("text len=%1").arg(len);
+        QTest::newRow(qPrintable(testName)) << createString(len);
     }
 
-    void benchmarkJsonCompressToUTF16()
+    void testCompressDecompress_data()
+    {
+        test_data();
+    }
+    void testCompressDecompress()
+    {
+        QFETCH(QString, text);
+        QString original = text;
+        QString compressed = LZString::compress(text);
+        QString decompressed = LZString::decompress(compressed);
+        QCOMPARE(original, decompressed);
+    }
+
+    void testCompressDecompressBase64_data()
+    {
+        test_data();
+    }
+    void testCompressDecompressBase64()
+    {
+        QFETCH(QString, text);
+        QString original = text;
+        QString compressed = LZString::compressToBase64(text);
+        QString decompressed = LZString::decompressFromBase64(compressed);
+        QCOMPARE(original, decompressed);
+    }
+
+    void testCompressDecompressUTF16_data()
+    {
+        test_data();
+    }
+    void testCompressDecompressUTF16()
+    {
+        QFETCH(QString, text);
+        QString original = text;
+        QString compressed = LZString::compressToUTF16(text);
+        QString decompressed = LZString::decompressFromUTF16(compressed);
+        QCOMPARE(original, decompressed);
+    }
+
+    void benchmark_compress()
+    {
+        QString uncompressed = m_json;
+        QString compressed;
+        QBENCHMARK {
+            compressed = LZString::compress(uncompressed);
+        }
+        qDebug("LZString::compress() %d -> %d", uncompressed.length(), compressed.length());
+    }
+    void benchmark_decompress()
+    {
+        QString compressed = LZString::compress(m_json);
+        QString uncompressed;
+        QBENCHMARK {
+            uncompressed = LZString::decompress(compressed);
+        }
+        qDebug("LZString::decompress() %d -> %d", compressed.length(), uncompressed.length());
+    }
+
+    void benchmark_compressToBase64()
+    {
+        QString uncompressed = m_json;
+        QString compressed;
+        QBENCHMARK {
+            compressed = LZString::compressToBase64(uncompressed);
+        }
+        qDebug("LZString::compressToBase64() %d -> %d", uncompressed.length(), compressed.length());
+    }
+    void benchmark_decompressFromBase64()
+    {
+        QString compressed = LZString::compressToBase64(m_json);
+        QString uncompressed;
+        QBENCHMARK {
+            uncompressed = LZString::decompressFromBase64(compressed);
+        }
+        qDebug("LZString::decompressFromBase64() %d -> %d", compressed.length(), uncompressed.length());
+    }
+
+    void benchmark_compressToUTF16()
     {
         QString uncompressed = m_json;
         QString compressed;
         QBENCHMARK {
             compressed = LZString::compressToUTF16(uncompressed);
         }
-
-        QString message = "Compress UTF16 " +
-                QString::number(uncompressed.length()) + " -> " +
-                QString::number(compressed.length());
-        qDebug(qPrintable(message));
+        qDebug("LZString::compressToUTF16() %d -> %d", uncompressed.length(), compressed.length());
     }
-    void benchmarkJsonDecompressFromUTF16()
+    void benchmark_decompressFromUTF16()
     {
         QString compressed = LZString::compressToUTF16(m_json);
         QString uncompressed;
         QBENCHMARK {
             uncompressed = LZString::decompressFromUTF16(compressed);
         }
-
-        QString message = "Decompress UTF16 " +
-                QString::number(compressed.length()) + " -> " +
-                QString::number(uncompressed.length());
-        qDebug(qPrintable(message));
+        qDebug("LZString::decompressFromUTF16() %d -> %d", compressed.length(), uncompressed.length());
     }
 
 private:
@@ -109,19 +167,6 @@ private:
             text.append( QChar(i+1) );  // Skip \0
         }
         return text;
-    }
-
-    static QString compressDecompress(const QString &text)
-    {
-        QString compressed = LZString::compress(text);
-        QString decompressed = LZString::decompress(compressed);
-        return decompressed;
-    }
-    static QString compressDecompressUTF16(const QString &text)
-    {
-        QString compressed = LZString::compressToUTF16(text);
-        QString decompressed = LZString::decompressFromUTF16(compressed);
-        return decompressed;
     }
 
 private:
