@@ -3,7 +3,6 @@
 #include <cmath>
 #include <QHash>
 #include <QList>
-#include <QMap>
 #include <QString>
 #include <QStringBuilder>
 #include <QStringRef>
@@ -386,19 +385,19 @@ public:
     {
         for (int i=0, len=alphabet.length(); i<len; ++i)
         {
-            m_baseReverseDic[alphabet.at(i)] = i;
+            m_baseReverseDic.insert(alphabet.at(i), i);
         }
     }
 
     int operator()(int index) const
     {
-        return m_baseReverseDic[m_compressed[index].unicode()];
+        return m_baseReverseDic.value(m_compressed[index].unicode());
     }
 
 private:
     const QChar *m_compressed;
     QString m_alphabet;
-    QMap<QChar, int> m_baseReverseDic;
+    QHash<QChar, int> m_baseReverseDic;
 };
 
 QString LZString::decompress(const QString &compressed)
