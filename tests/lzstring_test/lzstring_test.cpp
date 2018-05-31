@@ -37,7 +37,17 @@ private slots:
         QString symbols = "!@#$%^&*()_-+={}`~/,.<>?:\"'|[]{}";
         QString escape  = "\r\n\t";
         QString all     = letters + polish + digits + symbols + escape;
-        QString custom  = "hello1hello2hello3hello4hello5hello6hello7hello8hello9helloAhelloBhelloChelloDhelloEhelloF";
+
+        QString custom[] =
+        {
+            "hello1hello2hello3hello4hello5hello6hello7hello8hello9helloAhelloBhelloChelloDhelloEhelloF",
+            "1-1072",
+            "{'TrialPoint': [[1417718784937, '*** Start trial ***']]}",
+            "pg.o-N/~",
+            "Dak0tajdjdjdddddddddddddddddddddddd",
+            "ɢ䰭䰾恔@㯄ʓFȱ ",
+            "ユニコード"
+        };
 
         QTest::addColumn<QString>("text");
         QTest::newRow("letters") << letters;
@@ -46,19 +56,23 @@ private slots:
         QTest::newRow("symbols") << symbols;
         QTest::newRow("escape")  << escape;
         QTest::newRow("all")     << all;
-        QTest::newRow("custom")  << custom;
+        QTest::newRow("json")    << m_json;
 
-        QTest::newRow("json") << m_json;
+        for (int i=0; i<sizeof(custom)/sizeof(custom[0]); ++i)
+        {
+            QString testCase = QString("custom%1").arg(i+1);
+            QTest::newRow(qPrintable(testCase)) << custom[i];
+        }
 
         for (int len=0; len<256; ++len)
         {
-            QString testName = QString("text len=%1").arg(len);
-            QTest::newRow(qPrintable(testName)) << createString(len);
+            QString testCase = QString("text len=%1").arg(len);
+            QTest::newRow(qPrintable(testCase)) << createString(len);
         }
 
         int len = 0xD7FF;  // 0xD800—0xDB7F - High Surrogates
-        QString testName = QString("text len=%1").arg(len);
-        QTest::newRow(qPrintable(testName)) << createString(len);
+        QString testCase = QString("text len=%1").arg(len);
+        QTest::newRow(qPrintable(testCase)) << createString(len);
     }
 
     void testCompressDecompress_data()
