@@ -1,10 +1,10 @@
 #include "lzstring.h"
 
 #include <QHash>
-#include <QList>
 #include <QString>
 #include <QStringBuilder>
 #include <QStringRef>
+#include <QVector>
 
 static const QString keyStrBase64 = QStringLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
 static const QString keyStrUriSafe = QStringLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$");
@@ -435,7 +435,7 @@ struct DecompressData
 template <typename GetNextValue>
 QString LZString::_decompress(int length, int resetValue, GetNextValue getNextValue)
 {
-    QList<QString> dictionary;
+    QVector<QString> dictionary;
     int next = 0;
     int enlargeIn = 4;
     int dictSize = 4;
