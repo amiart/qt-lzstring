@@ -6,8 +6,8 @@
 #include <QStringRef>
 #include <QVector>
 
-static const QString keyStrBase64 = QStringLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
-static const QString keyStrUriSafe = QStringLiteral("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$");
+static const QString keyStrBase64 = QLatin1String("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=");
+static const QString keyStrUriSafe = QLatin1String("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$");
 
 static QChar compressGetCharFromInt(int a)
 {
