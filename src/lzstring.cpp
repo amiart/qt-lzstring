@@ -35,7 +35,9 @@ QString LZString::compressToUTF16(const QString &uncompressed)
     if (uncompressed.isEmpty())
         return "";
 
-    return _compress(uncompressed, 15, &compressToUTF16GetCharFromInt) % " ";  // % - QStringBuilder
+    QString result = _compress(uncompressed, 15, &compressToUTF16GetCharFromInt);
+    result.append(QLatin1String(" "));
+    return result;
 }
 
 QString LZString::compressToBase64(const QString &uncompressed)
