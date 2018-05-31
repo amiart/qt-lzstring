@@ -1,6 +1,5 @@
 #include "lzstring.h"
 
-#include <cmath>
 #include <QHash>
 #include <QList>
 #include <QString>
@@ -166,7 +165,7 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCha
                 context_enlargeIn--;
                 if (context_enlargeIn == 0)
                 {
-                    context_enlargeIn = std::pow(2.0, context_numBits);
+                    context_enlargeIn = 1 << context_numBits;
                     context_numBits++;
                 }
                 context_dictionaryToCreate.remove(context_w);
@@ -193,7 +192,7 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCha
             context_enlargeIn--;
             if (context_enlargeIn == 0)
             {
-                context_enlargeIn = std::pow(2.0, context_numBits);
+                context_enlargeIn = 1 << context_numBits;
                 context_numBits++;
             }
 
@@ -279,7 +278,7 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCha
             context_enlargeIn--;
             if (context_enlargeIn == 0)
             {
-                context_enlargeIn = std::pow(2.0, context_numBits);
+                context_enlargeIn = 1 << context_numBits;
                 context_numBits++;
             }
             context_dictionaryToCreate.remove(context_w);
@@ -307,7 +306,7 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCha
         context_enlargeIn--;
         if (context_enlargeIn == 0)
         {
-            context_enlargeIn = std::pow(2.0, context_numBits);
+            context_enlargeIn = 1 << context_numBits;
             context_numBits++;
         }
     }
@@ -464,7 +463,7 @@ QString LZString::_decompress(int length, int resetValue, GetNextValue getNextVa
     }
 
     bits = 0;
-    maxpower = std::pow(2.0, 2);
+    maxpower = 4;
     power = 1;
     while (power != maxpower)
     {
@@ -483,7 +482,7 @@ QString LZString::_decompress(int length, int resetValue, GetNextValue getNextVa
     {
         case 0:
             bits = 0;
-            maxpower = std::pow(2.0, 8);
+            maxpower = 256;
             power = 1;
             while (power != maxpower)
             {
@@ -502,7 +501,7 @@ QString LZString::_decompress(int length, int resetValue, GetNextValue getNextVa
 
         case 1:
             bits = 0;
-            maxpower = std::pow(2.0, 16);
+            maxpower = 65536;
             power = 1;
             while (power != maxpower)
             {
@@ -532,7 +531,7 @@ QString LZString::_decompress(int length, int resetValue, GetNextValue getNextVa
             return "";
 
         bits = 0;
-        maxpower = std::pow(2.0, numBits);
+        maxpower = 1 << numBits;
         power = 1;
         while (power != maxpower)
         {
@@ -554,7 +553,7 @@ QString LZString::_decompress(int length, int resetValue, GetNextValue getNextVa
         {
             case 0:
                 bits = 0;
-                maxpower = std::pow(2.0, 8);
+                maxpower = 256;
                 power = 1;
                 while (power != maxpower)
                 {
@@ -576,7 +575,7 @@ QString LZString::_decompress(int length, int resetValue, GetNextValue getNextVa
 
             case 1:
                 bits = 0;
-                maxpower = std::pow(2.0, 16);
+                maxpower = 65536;
                 power = 1;
                 while (power != maxpower)
                 {
@@ -602,7 +601,7 @@ QString LZString::_decompress(int length, int resetValue, GetNextValue getNextVa
 
         if (enlargeIn == 0)
         {
-            enlargeIn = std::pow(2.0, numBits);
+            enlargeIn = 1 << numBits;
             numBits++;
         }
 
@@ -629,7 +628,7 @@ QString LZString::_decompress(int length, int resetValue, GetNextValue getNextVa
 
         if (enlargeIn == 0)
         {
-            enlargeIn = std::pow(2.0, numBits);
+            enlargeIn = 1 << numBits;
             numBits++;
         }
     }
