@@ -92,7 +92,10 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCha
         }
         else
         {
-            if (context_dictionaryToCreate.contains(context_w))
+            QHash<QStringRef, bool>::iterator context_w_it =
+                context_dictionaryToCreate.find(context_w);
+
+            if (context_w_it != context_dictionaryToCreate.end())
             {
                 if (context_w.at(0).unicode() < 256)
                 {
@@ -168,7 +171,7 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCha
                     context_enlargeIn = 1 << context_numBits;
                     context_numBits++;
                 }
-                context_dictionaryToCreate.remove(context_w);
+                context_dictionaryToCreate.erase(context_w_it);
             }
             else
             {
@@ -205,7 +208,10 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCha
     // Output the code for w.
     if (!context_w.isEmpty())
     {
-        if (context_dictionaryToCreate.contains(context_w))
+        QHash<QStringRef, bool>::iterator context_w_it =
+            context_dictionaryToCreate.find(context_w);
+
+        if (context_w_it != context_dictionaryToCreate.end())
         {
             if (context_w.at(0).unicode() < 256)
             {
@@ -281,7 +287,7 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCha
                 context_enlargeIn = 1 << context_numBits;
                 context_numBits++;
             }
-            context_dictionaryToCreate.remove(context_w);
+            context_dictionaryToCreate.erase(context_w_it);
         }
         else
         {
