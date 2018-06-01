@@ -58,7 +58,7 @@ private slots:
         QTest::newRow("all")     << all;
         QTest::newRow("json")    << m_json;
 
-        for (int i=0; i<sizeof(custom)/sizeof(custom[0]); ++i)
+        for (size_t i=0; i<sizeof(custom)/sizeof(custom[0]); ++i)
         {
             QString testCase = QString("custom%1").arg(i+1);
             QTest::newRow(qPrintable(testCase)) << custom[i];
