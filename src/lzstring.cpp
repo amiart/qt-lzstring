@@ -1,5 +1,6 @@
 #include "lzstring.h"
 
+#include <QBitArray>
 #include <QHash>
 #include <QString>
 #include <QStringBuilder>
@@ -61,6 +62,7 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCha
 {
     int i = 0;
     int value = 0;
+    QBitArray context_c_dictionary(65536); // All bits initialized to 0
     QHash<QStringRef, int> context_dictionary;
     QHash<QStringRef, bool> context_dictionaryToCreate;
     QStringRef context_c;
@@ -79,8 +81,11 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCha
     for (int ii=0, size=uncompressed.length(); ii<size; ++ii)
     {
         context_c = QStringRef(&uncompressed, ii, 1);
-        if (!context_dictionary.contains(context_c))
+        Q_ASSERT(context_c.length() == 1);
+        const int context_c_value = context_c.at(0).unicode();
+        if (!context_c_dictionary.testBit(context_c_value))
         {
+            context_c_dictionary.setBit(context_c_value);
             context_dictionary.insert(context_c, context_dictSize++);
             context_dictionaryToCreate.insert(context_c, true);
         }
@@ -200,6 +205,7 @@ QString LZString::_compress(const QString &uncompressed, int bitsPerChar, GetCha
             }
 
             // Add wc to the dictionary.
+            Q_ASSERT(context_wc.length() > 1);
             context_dictionary.insert(context_wc, context_dictSize++);
             context_w = context_c;
         }
