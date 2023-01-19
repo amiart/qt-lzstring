@@ -1,5 +1,5 @@
 
-<h2>Qt implementation of LZ-String, version 1.4.4.</h2>
+<h2>Qt6 (cmake) implementation of LZ-String, version 1.4.5.</h2>
 <p>
 Based on the LZ-String compression algorithm found here:<br/>
 http://pieroxy.net/blog/pages/lz-string/index.html
@@ -16,3 +16,8 @@ Implemented functions:<br/>
 <li>compressToUint8Array() / decompressFromUint8Array() - <b>NO</b></li>
 <li>compressToEncodedURIComponent() / decompressFromEncodedURIComponent() - <b>NO</b></li>
 </ul>
+
+<p>
+	This Qt6 port relies on Qt5-compat for classes QStringRef and QTextCodec.<br/>
+	Future improvements should focus on removing this dependency.<br/>
+	<br/></p>
